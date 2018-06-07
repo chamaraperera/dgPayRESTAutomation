@@ -131,7 +131,7 @@ public class GetAllCountries {
 		
 		int statusCode = response.getStatusCode();
 		Assert.assertEquals("Correct status code returned.", 200, statusCode);
-		//Assert.assertEquals("First Country ID.", 1, firstId);
+		Assert.assertEquals("First Country ID.", 1, firstId);
 		//Assert.assertEquals("First Country Code.", "AED", firstCurrencyCode);
 		//Assert.assertEquals("Last Country ID.", 159, lastId);
 		//Assert.assertEquals("Last Country Code.", "ZWL", lastCurrencyCode);
