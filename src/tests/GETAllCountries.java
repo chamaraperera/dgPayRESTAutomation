@@ -19,10 +19,10 @@ import resources.Constants;
 //import net.thucydides.core.annotations.Title;
 
 
-public class GetAllCountries {
+public class GETAllCountries {
 	
 	@Test 
-	@Ignore
+	//@Ignore
 	// Test Bed
 	public void TestBed() {
 		RestAssured.baseURI = "http://staging-api.dgpayglobal.com/v1/countries";
@@ -50,7 +50,7 @@ public class GetAllCountries {
 	}
 	
 	@Test 
-	@Ignore
+	//@Ignore
 	// GET response for full list of countries with no optional parameters passed.
 	public void GetAllCountriesFullList() {
 		RestAssured.baseURI = "http://staging-api.dgpayglobal.com/v1/countries";
@@ -73,7 +73,7 @@ public class GetAllCountries {
 	}
 	
 	@Test 
-	@Ignore
+	//@Ignore
 	// GET response for page 2 of the list of countries
 	public void GetAllCountriesByPage() {
 		RestAssured.baseURI = "http://staging-api.dgpayglobal.com/v1/countries";
@@ -101,7 +101,10 @@ public class GetAllCountries {
 	public void GetLimitedCountriesByPage() {
 		RestAssured.baseURI = "http://staging-api.dgpayglobal.com/v1/countries";
 		RequestSpecification httpRequest = RestAssured.given();
-		Response response = httpRequest.request(Method.GET, "/?limit=10&page=2");
+		Response response = httpRequest.request(Method.GET, "/?page=2&limit=10");
+		
+		String responseBody = response.getBody().asString();
+		System.out.println("Response Body is: " + responseBody);
 
 		// use jsonPathEvaluator to get first and last data object values
 		JsonPath jsonPathEvaluator = response.jsonPath();
@@ -120,24 +123,45 @@ public class GetAllCountries {
 	
 	
 	@Test 
-	// GET response for full list of countries with no optional parameters passed.
-	public void GetAllCountriesBadRequest() {
+	//@Ignore
+	// GET invalid request response for full list of countries with no optional parameters passed.
+	public void GetAllCountriesInvalidRequest() {
 		RestAssured.baseURI = "http://staging-api.dgpayglobal.com/v1/";
 		RequestSpecification httpRequest = RestAssured.given();
 		Response response = httpRequest.request(Method.GET, "");
 
+		JsonPath jsonPathEvaluator = response.jsonPath();
+		String errorMessage = jsonPathEvaluator.get("message");
+		
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals("Correct status code returned.", 404, statusCode);
+		Assert.assertEquals("Error Message.", "API endpoint does not exist", errorMessage);
+	}
+	
+	
+	@Test 
+	//@Ignore
+	// GET request response for full list of countries with incorrect page parameter
+	public void GetAllCountriesIncorrectPageValue() {
+		RestAssured.baseURI = "http://staging-api.dgpayglobal.com/v1/countries";
+		RequestSpecification httpRequest = RestAssured.given();
+		Response response = httpRequest.request(Method.GET, "?page=20");
+		
 		String responseBody = response.getBody().asString();
 		System.out.println("Response Body is: " + responseBody);
+
+		JsonPath jsonPathEvaluator = response.jsonPath();
+		String errorMessage = jsonPathEvaluator.get("links.last");
 		
 		int statusCode = response.getStatusCode();
 		Assert.assertEquals("Correct status code returned.", 200, statusCode);
-		Assert.assertEquals("First Country ID.", 1, firstId);
-		//Assert.assertEquals("First Country Code.", "AED", firstCurrencyCode);
-		//Assert.assertEquals("Last Country ID.", 159, lastId);
-		//Assert.assertEquals("Last Country Code.", "ZWL", lastCurrencyCode);
-	
+		Assert.assertEquals("Maximum Pagination Limit Message.", "https://staging-api.dgpayglobal.com/v1/countries?page=4", errorMessage);
 	}
 	
+	
+	//@Test 
+	// GET bad request response for full list of countries with correct page parameter
+	// UNABLE to get 400 Bad Request for GET call. This would occur when a db issue/connection issue occurs. Cannot be initiated from the UI side.
 	
 
 }
