@@ -217,7 +217,7 @@ public class POSTVerifyOTP {
 	}
 	
 	@Test
-	// @Ignore
+	 @Ignore
 	// POST request verify for valid OTP number 2.2mins after generation
 	public void PostVerifyValidOTPNumberWith220Delay() throws InterruptedException {
 		phonePrefix = "65";
