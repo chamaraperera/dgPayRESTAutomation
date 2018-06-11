@@ -24,9 +24,39 @@ public class POSTSendOTP {
 		System.out.println("Response Body is: " + responseBody);
 	}
 
-	protected String baseURL = "https://staging-api.dgpayglobal.com/v1/register/send/otp";
+	// Variables for individual tests
+	// ---------------------------------------------------------------------------------------------------------------------
+	protected String phonePrefix = "";
+	protected String phoneNumber = "";
+	protected String phoneOTP = "";
+	protected static int statusCode = 0;
+	protected static String statusMessage = "";
+	protected static String statusError = "";
+	
+	protected String baseSendOTPURL = "https://staging-api.dgpayglobal.com/v1/register/send/otp";
 	protected String headerContentType = "Content-Type\", \"application/json";
+	
+	public void sendOTP(String prefix, String number, String jsonMsgPath, String jsonErrPath) {
+		RestAssured.baseURI = baseSendOTPURL;
+		RequestSpecification httpRequest = RestAssured.given();
+		JSONObject requestParameters = new JSONObject();
+		httpRequest.header("Content-Type", "application/json");
+		requestParameters.put("mobile_prefix", prefix);
+		requestParameters.put("mobile_number", number);
 
+		httpRequest.body(requestParameters.toJSONString());
+		Response httpResponse = httpRequest.post();
+
+		statusCode = httpResponse.getStatusCode();
+		// String responseBody = httpResponse.getBody().asString();
+		// System.out.println("Response Body is: " + responseBody);
+		//statusMessage = httpResponse.jsonPath().get("message");
+		statusMessage = httpResponse.jsonPath().get(jsonMsgPath);
+		//statusError = httpResponse.jsonPath().get("error");
+		statusError = httpResponse.jsonPath().get(jsonErrPath);
+	}
+	
+	
 	@Test
 	@Ignore
 	// Test Bed
@@ -52,171 +82,125 @@ public class POSTSendOTP {
 	}
 
 	@Test
+	//@Ignore
 	// POST request response for valid SG phone number
 	public void PostSendOTPToValidSGNumber() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "65");
-		requestParameters.put("mobile_number", "82065852");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
-
-		int statusCode = httpResponse.getStatusCode();
+		phonePrefix = "65";
+		phoneNumber = "82065852";
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "error");
+		
 		Assert.assertEquals("Correct status code returned.", 200, statusCode);
-		String successCode = httpResponse.jsonPath().get("message");
-		Assert.assertEquals("Correct Success Code Returned", successCode, "successfully sent otp code");
+		Assert.assertEquals("Correct Success Message Returned", statusMessage, "successfully sent otp code");
 	}
 
 	@Test
 	@Ignore
 	// POST request response for valid Phillipines phone number
 	public void PostSendOTPToValidPLPNumber() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "63");
-		requestParameters.put("mobile_number", "468526345");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
-
-		int statusCode = httpResponse.getStatusCode();
+		phonePrefix = "65";
+		phoneNumber = "82065852";
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "error");
+		
 		Assert.assertEquals("Correct status code returned.", 200, statusCode);
-		String successCode = httpResponse.jsonPath().get("message");
-		Assert.assertEquals("Correct Success Code Returned", successCode, "successfully sent otp code");
+		Assert.assertEquals("Correct Success Message Returned", statusMessage, "successfully sent otp code");
 	}
 
 	@Test
+	//@Ignore
 	// POST request response for invalid prefix
 	public void PostSendOTPWithInvalidPrefix() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "!@65");
-		requestParameters.put("mobile_number", "82065852");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
-
-		String errorCode = httpResponse.jsonPath().get("errors.mobile_prefix").toString();
-		int statusCode = httpResponse.getStatusCode();
+		phonePrefix = "!@65";
+		phoneNumber = "82065852";
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "errors.mobile_prefix");
+		
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Code Returned", errorCode, "The mobile prefix must be a number.");
+		Assert.assertEquals("Correct Error Code Returned", statusError, "The mobile prefix must be between 1 and 5 digits.");
 	}
 
 	@Test
+	//@Ignore
 	// POST request response for invalid number
 	public void PostSendOTPWithInvalidNumber() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "65");
-		requestParameters.put("mobile_number", "%82065852A");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
-
-		String errorCode = httpResponse.jsonPath().get("errors.mobile_number").toString();
-		int statusCode = httpResponse.getStatusCode();
+		phonePrefix = "!@65";
+		phoneNumber = "%82065852A";
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "errors.mobile_number");
+		
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Code Returned", errorCode, "The mobile number must be a number.");
+		Assert.assertEquals("Correct Error Code Returned", statusError, "The mobile number must be between 1 and 15 digits.");
 	}
 	
 
 	@Test
+	//@Ignore
 	// POST request response for empty prefix
 	public void PostSendOTPWithEmptyPrefix() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "");
-		requestParameters.put("mobile_number", "82065852");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
+		phonePrefix = "";
+		phoneNumber = "82065852";
 		
-		String errorCode = httpResponse.jsonPath().get("errors.mobile_prefix").toString();
-		int statusCode = httpResponse.getStatusCode();
+		sendOTP(phonePrefix, phoneNumber, "message", "errors.mobile_prefix");
+		
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Code Returned", errorCode, "The mobile prefix field is required.");
+		Assert.assertEquals("Correct Error Code Returned", statusError, "The mobile prefix field is required.");
 	}
 	
 	
 	@Test
+	//@Ignore
 	// POST request response for empty number
 	public void PostSendOTPWithEmptyNumber() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "65");
-		requestParameters.put("mobile_number", "");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
+		phonePrefix = "65";
+		phoneNumber = "";
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "errors.mobile_number");
 
-		String errorCode = httpResponse.jsonPath().get("errors.mobile_number").toString();
-		int statusCode = httpResponse.getStatusCode();
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Code Returned", errorCode, "The mobile number field is required.");
+		Assert.assertEquals("Correct Error Code Returned", statusError, "The mobile number field is required.");
 	}
 	
 	
 	@Test
+	//@Ignore
 	// POST request response for long prefix
 	public void PostSendOTPWithLongPrefix() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "98765432");
-		requestParameters.put("mobile_number", "82065852");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
+		phonePrefix = "98765432";
+		phoneNumber = "82065852";
 		
-		String errorCode = httpResponse.jsonPath().get("errors.mobile_prefix").toString();
-		int statusCode = httpResponse.getStatusCode();
+		sendOTP(phonePrefix, phoneNumber, "message", "errors.mobile_prefix");
+
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Code Returned", errorCode, "The selected mobile prefix is invalid.");
+		Assert.assertEquals("Correct Error Code Returned", statusError, "The mobile prefix must be between 1 and 5 digits.");
 	}
 	
 	
 	@Test
+	//@Ignore
 	// POST request response for long number
 	public void PostSendOTPWithLongNumber() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "65");
-		requestParameters.put("mobile_number", "1234567890123456789");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
-
-		String errorCode = httpResponse.jsonPath().get("message").toString();
-		int statusCode = httpResponse.getStatusCode();
+		phonePrefix = "65";
+		phoneNumber = "1234567890123456789";
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "errors.mobile_number");
+		
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Message Returned", errorCode, "Error for 651234567890123456789: to address is too long");
+		Assert.assertEquals("Correct Error Message Returned", statusError, "The mobile number must be between 1 and 15 digits.");
 	}
 	
 	
 	@Test
-	// POST request response for long number
+	@Ignore
+	// POST request response for number field with invalid data type
 	public void PostSendOTPWithInvalidDataTypeNumber() {
-		RestAssured.baseURI = baseURL;
-		RequestSpecification httpRequest = RestAssured.given();
-		JSONObject requestParameters = new JSONObject();
-		httpRequest.header("Content-Type", "application/json");
-		requestParameters.put("mobile_prefix", "65");
-		requestParameters.put("mobile_number", "8206.5852");
-		httpRequest.body(requestParameters.toJSONString());
-		Response httpResponse = httpRequest.post();
+		phonePrefix = "65";
+		phoneNumber = String.valueOf(8206.5852);
+		
+		sendOTP(phonePrefix, phoneNumber, "message", "errors");
 
-		String errorCode = httpResponse.jsonPath().get("message").toString();
-		int statusCode = httpResponse.getStatusCode();
 		Assert.assertEquals("Correct status code returned.", 400, statusCode);
-		Assert.assertEquals("Correct Error Message Returned", errorCode, "Error for 658206.5852: to address is not numeric");
+		Assert.assertEquals("Correct Error Message Returned", statusMessage, "The mobile number must be between 1 and 15 digits.");
 	}
 	
 	
